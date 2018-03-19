@@ -1,0 +1,123 @@
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-1.x-git.min.js"></script>
+    <script src="jquery.vortex.1.0.6/js/jquery.vortex.min.js"></script>
+    <link href="jquery.vortex.1.0.6/css/vortex.min.css" rel="stylesheet" media="screen" />
+    <style type="text/css">
+        #vortex {
+            width: 300px;
+            height: 300px;
+            position: relative;
+        }
+
+        #vortex.vortex-animating>* {
+            background-color: red;
+        }
+
+        .square-button {
+            background: #606C88;
+            border: solid 1px;
+            border-color: #000000;
+            width: 100px;
+            height: 100px
+        }
+    </style>
+</head>
+
+<body>
+    <div id="vortex">
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+        <div class="square-button"></div>
+    </div>
+    <script type="text/javascript">
+        var position;
+        var direction;
+        var second;
+        // タッチイベントが利用可能かの判別
+        var supportTouch = 'ontouchend' in document;
+        var EVENTNAME_TOUCHSTART = supportTouch ? 'touchstart' : 'mousedown';
+        var EVENTNAME_TOUCHMOVE = supportTouch ? 'touchmove' : 'mousemove';
+        var EVENTNAME_TOUCHEND = supportTouch ? 'touchend' : 'mouseup';
+
+        $(window).load(function () {
+            $('#vortex').vortex({
+                initialPosition: 270,
+                speed: 0,
+                manualAdvance: true,
+                clockwise: true,
+            });
+        });
+        $('#vortex').on(EVENTNAME_TOUCHSTART, onTouchStart); //指が触れたか検知
+        $('#vortex').on(EVENTNAME_TOUCHMOVE, onTouchMove); //指が動いたか検知
+        $('#vortex').on(EVENTNAME_TOUCHEND, onTouchEnd); //指が離れたか検知
+
+        //スワイプ開始時の横方向の座標を格納
+        function onTouchStart(event) {
+            position = getPosition(event);
+            direction = ''; //一度リセットする
+            $('#vortex').data('vortex').stop();                       
+            second = new Date().getSeconds;
+        }
+
+        //スワイプの方向（left／right）を取得
+        function onTouchMove(event) {
+            var pos = getPosition(event);
+            if (position - pos > 0) { // 70px以上移動しなければスワイプと判断しない
+                direction = 'left'; //左と検知
+                $('#vortex').data('vortex').setSpeed(20);
+                $('#vortex').data('vortex').setClockwise(true);
+                $('#vortex').data('vortex').start();
+            } else if (position - pos < 0) {  // 70px以上移動しなければスワイプと判断しない
+                direction = 'right'; //右と検知
+                $('#vortex').data('vortex').setSpeed(20);
+                $('#vortex').data('vortex').setClockwise(false);
+                $('#vortex').data('vortex').start();
+            }
+        }
+
+        function onTouchEnd(event) {
+            var pos = getPosition(event);
+            var nowSecond = new Date().getSeconds;
+            console.log(position - pos);
+            if (position - pos > 50 && nowSecond - second < 2) {
+                direction = 'left'; //左と検知
+                $('#vortex').data('vortex').setSpeed(5);
+                $('#vortex').data('vortex').setClockwise(true);
+                $('#vortex').data('vortex').start();
+            } else if (position - pos < 50 && nowSecond - second < 2) {  // 70px以上移動しなければスワイプと判断しない
+                direction = 'right'; //右と検知
+                $('#vortex').data('vortex').setSpeed(5);
+                $('#vortex').data('vortex').setClockwise(false);
+                $('#vortex').data('vortex').start();
+            } else {
+                $('#vortex').data('vortex').stop();           
+            }
+        }
+
+        //横方向の座標を取得
+        function getPosition(event) {
+            // jQueryのイベントはオリジナルのイベントをラップしたもの。
+            // changedTouchesが欲しいので、オリジナルのイベントオブジェクトを取得
+            var original = event.originalEvent;
+            var x;
+            if(original.changedTouches) {
+                x = original.changedTouches[0].pageX;
+            } else {
+                x = event.pageX;
+            }
+            return x;
+        }
+    </script>
+</body>
+</html>
