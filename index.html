@@ -18,6 +18,46 @@
             /* width: 200px; */
             /* height: 300px */
         }
+        
+        .pos_0 {
+            top: 300px;
+            left: 200px;
+            z-index: 5;
+            width: 200px;
+            height: 300px;
+        }
+
+        .pos_1 {
+            top: 200px;
+            left: 420px;
+            z-index: 4;
+            width: 160px;
+            height: 240px;
+        }
+
+        .pos_2 {
+            top: 30px;
+            left: 500px;
+            z-index: 3;
+            width: 100px;
+            height: 150px;
+        }
+
+        .pos_3 {
+            top: 30px;
+            left: -10px;
+            z-index: 1;
+            width: 100px;
+            height: 150px;
+        }
+
+        .pos_4 {
+            top: 200px;
+            left: 20px;
+            z-index: 2;
+            width: 160px;
+            height: 240px;
+        }
 
         .square-button img {
             position: relative;
@@ -52,18 +92,24 @@
             }
 
             var elements = {};
-            elements[0] = new ButtonElement(300, 200, 5, 200, 300);
-            elements[1] = new ButtonElement(200, 420, 4, 160, 240);
-            elements[2] = new ButtonElement(30, 500, 3, 100, 150);
-            elements[3] = new ButtonElement(30, -10, 1, 100, 150);
-            elements[4] = new ButtonElement(200, 20, 2, 160, 240);
-
+            $("#content > .square-button").each(function (index, element) {
+                var obj = $(element).css(['top', 'left', 'zIndex', 'width', 'height']);
+                elements[index] = new ButtonElement(
+                    obj.top.replace(/[^-\d\.]/g, ''),
+                    obj.left.replace(/[^-\d\.]/g, ''),
+                    obj.zIndex,
+                    obj.width.replace(/[^-\d\.]/g, ''),
+                    obj.height.replace(/[^-\d\.]/g, '')
+                );
+            });
+            var elementsLength = Object.keys(elements).length;
+            
             var groups = {};
-            groups[0] = new Group(elements[0], elements[1], elements[4]);
-            groups[1] = new Group(elements[1], elements[2], elements[0]);
-            groups[2] = new Group(elements[2], elements[3], elements[1]);
-            groups[3] = new Group(elements[3], elements[4], elements[2]);
-            groups[4] = new Group(elements[4], elements[0], elements[3]);
+            for (var i = 0; i < elementsLength; i++) {
+                var positiveElementsIndex = i == elementsLength - 1 ? 0 : i + 1;
+                var negativeElementsIndex = i == 0 ? elementsLength - 1 : i - 1;
+                groups[i] = new Group(elements[i], elements[positiveElementsIndex], elements[negativeElementsIndex]);
+            }
             var groupsLength = Object.keys(groups).length;
             
             // タッチイベントが利用可能かの判別
@@ -167,16 +213,6 @@
                 t = Math.abs(t);
                 return (1 - t) * a + t * b
             };
-
-            for (var i = 0; i < groupsLength; i++) {
-                $(".pos_" + i).css({
-                    top: elements[i].top,
-                    left: elements[i].left,
-                    zIndex: elements[i].zIndex,
-                    width: elements[i].width,
-                    height: elements[i].height
-                });
-            }
 
             $('#content').on(EVENTNAME_TOUCHSTART, onTouchStart);
             $('#content').on(EVENTNAME_TOUCHMOVE, onTouchMove);
