@@ -83,57 +83,30 @@
                 var duration = endX - startX;
                 normalize = normalized(0, 220, duration);
                 while (1 < normalize) {
-                    var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
-                    for (var i = 0; i < groupsLength; i++) {
-                        groups[i] = i == groupsLength - 1 ? tmp : groups[i + 1];
-                    }
+                    replaceGroup(true);
                     normalize -= 1;
                     startX = endX;
                 }
-                if (0 < normalize) {
-                    for (var i = 0; i < groupsLength; i++) {
-                        var top = lerp(groups[i].original.top, groups[i].positive.top, normalize);
-                        var left = lerp(groups[i].original.left, groups[i].positive.left, normalize);
-                        var width = lerp(groups[i].original.width, groups[i].positive.width, normalize);
-                        var height = lerp(groups[i].original.height, groups[i].positive.height, normalize);
-                        setPosition(".pos_" + i, top, left, width, height);
-                    }
-                }
-
                 while (normalize < -1) {
-                    var tmp = new Group(groups[groupsLength - 1].original, groups[groupsLength - 1].positive, groups[groupsLength - 1].negative);                    
-                    for (var i = groupsLength - 1; 0 <= i; i--) {
-                        groups[i] = i == 0 ? tmp : groups[i - 1];
-                    }
+                    replaceGroup(false);
                     normalize += 1;
                     startX = endX;                                    
                 }
+                
+                if (0 < normalize) {
+                    for (var i = 0; i < groupsLength; i++) {
+                        translate(".pos_" + i, groups[i].original, groups[i].positive, normalize);
+                    }
+                }
                 if (normalize < 0) {
                     for (var i = 0; i < groupsLength; i++) {
-                        var top = lerp(groups[i].original.top, groups[i].negative.top, normalize);
-                        var left = lerp(groups[i].original.left, groups[i].negative.left, normalize);
-                        var width = lerp(groups[i].original.width, groups[i].negative.width, normalize);
-                        var height = lerp(groups[i].original.height, groups[i].negative.height, normalize);
-                        setPosition(".pos_" + i, top, left, width, height);
+                        translate(".pos_" + i, groups[i].original, groups[i].negative, normalize);                        
                     }
                 }
             };
 
             var onTouchEnd = function (event) {
-                if(normalize > 0)
-                {
-                    var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
-                    for (var i = 0; i < groupsLength; i++) {
-                        groups[i] = i == groupsLength - 1 ? tmp : groups[i + 1];
-                    }
-                }
-                else
-                {
-                    var tmp = new Group(groups[groupsLength - 1].original, groups[groupsLength - 1].positive, groups[groupsLength - 1].negative);                    
-                    for (var i = groupsLength - 1; 0 <= i; i--) {
-                        groups[i] = i == 0 ? tmp : groups[i - 1];
-                    }
-                }
+                replaceGroup(normalize > 0);
                 for (var i = 0; i < groupsLength; i++) {
                     var top = groups[i].original.top;
                     var left = groups[i].original.left;
@@ -159,14 +132,35 @@
                 return sum != 0 ? value / sum : 0;
             };
 
-            var setPosition = function (target, top, left, width, height) {
-                $(target).css({
+            var translate = function (targetClassName, originalElement, targetElement, normalizedDuration) {
+                var top = lerp(originalElement.top, targetElement.top, normalizedDuration);
+                var left = lerp(originalElement.left, targetElement.left, normalizedDuration);
+                var width = lerp(originalElement.width, targetElement.width, normalizedDuration);
+                var height = lerp(originalElement.height, targetElement.height, normalizedDuration);
+                $(targetClassName).css({
                     top: top,
                     left: left,
                     width: width,
                     height: height
                 });
             }
+            var replaceGroup = function (isPositive)
+            {
+                if(isPositive)
+                {
+                    var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
+                        for (var i = 0; i < groupsLength; i++) {
+                            groups[i] = i == groupsLength - 1 ? tmp : groups[i + 1];
+                        }
+                }
+                else
+                {
+                    var tmp = new Group(groups[groupsLength - 1].original, groups[groupsLength - 1].positive, groups[groupsLength - 1].negative);                    
+                    for (var i = groupsLength - 1; 0 <= i; i--) {
+                        groups[i] = i == 0 ? tmp : groups[i - 1];
+                    }
+                }
+            };
 
             // http://uchinoinu.hatenablog.jp/entry/2016/12/21/164118
             var lerp = function (a, b, t) {
