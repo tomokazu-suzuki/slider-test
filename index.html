@@ -82,23 +82,22 @@
                 var endX = getHorizontalPosition(event);
                 var duration = endX - startX;
                 normalize = normalized(0, 220, duration);
-                while (1 < normalize) {
-                    replaceGroup(true);
-                    normalize -= 1;
-                    startX = endX;
-                }
-                while (normalize < -1) {
-                    replaceGroup(false);
-                    normalize += 1;
-                    startX = endX;                                    
-                }
                 
                 if (0 < normalize) {
+                    while (1 < normalize) {
+                        replaceGroup(true);
+                        normalize -= 1;
+                        startX = endX;
+                    }
                     for (var i = 0; i < groupsLength; i++) {
                         translate(".pos_" + i, groups[i].original, groups[i].positive, normalize);
                     }
-                }
-                if (normalize < 0) {
+                } else if (normalize < 0) {
+                    while (normalize < -1) {
+                        replaceGroup(false);
+                        normalize += 1;
+                        startX = endX;
+                    }
                     for (var i = 0; i < groupsLength; i++) {
                         translate(".pos_" + i, groups[i].original, groups[i].negative, normalize);                        
                     }
