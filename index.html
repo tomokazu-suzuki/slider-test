@@ -64,7 +64,8 @@
             groups[2] = new Group(elements[2], elements[3], elements[1]);
             groups[3] = new Group(elements[3], elements[4], elements[2]);
             groups[4] = new Group(elements[4], elements[0], elements[3]);
-
+            var groupsLength = Object.keys(groups).length;
+            
             // タッチイベントが利用可能かの判別
             var supportTouch = 'ontouchend' in document;
             var EVENTNAME_TOUCHSTART = supportTouch ? 'touchstart' : 'mousedown';
@@ -83,14 +84,14 @@
                 normalize = normalized(0, 220, duration);
                 while (1 < normalize) {
                     var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
-                    for (var i = 0; i < 5; i++) {
-                        groups[i] = i == 4 ? tmp : groups[i + 1];
+                    for (var i = 0; i < groupsLength; i++) {
+                        groups[i] = i == groupsLength - 1 ? tmp : groups[i + 1];
                     }
                     normalize -= 1;
                     startX = endX;
                 }
                 if (0 < normalize) {
-                    for (var i = 0; i < 5; i++) {
+                    for (var i = 0; i < groupsLength; i++) {
                         var top = lerp(groups[i].original.top, groups[i].positive.top, normalize);
                         var left = lerp(groups[i].original.left, groups[i].positive.left, normalize);
                         var width = lerp(groups[i].original.width, groups[i].positive.width, normalize);
@@ -100,15 +101,15 @@
                 }
 
                 while (normalize < -1) {
-                    var tmp = new Group(groups[4].original, groups[4].positive, groups[4].negative);                    
-                    for (var i = 4; 0 <= i; i--) {
+                    var tmp = new Group(groups[groupsLength - 1].original, groups[groupsLength - 1].positive, groups[groupsLength - 1].negative);                    
+                    for (var i = groupsLength - 1; 0 <= i; i--) {
                         groups[i] = i == 0 ? tmp : groups[i - 1];
                     }
                     normalize += 1;
                     startX = endX;                                    
                 }
                 if (normalize < 0) {
-                    for (var i = 0; i < 5; i++) {
+                    for (var i = 0; i < groupsLength; i++) {
                         var top = lerp(groups[i].original.top, groups[i].negative.top, normalize);
                         var left = lerp(groups[i].original.left, groups[i].negative.left, normalize);
                         var width = lerp(groups[i].original.width, groups[i].negative.width, normalize);
@@ -122,18 +123,18 @@
                 if(normalize > 0)
                 {
                     var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
-                    for (var i = 0; i < 5; i++) {
-                        groups[i] = i == 4 ? tmp : groups[i + 1];
+                    for (var i = 0; i < groupsLength; i++) {
+                        groups[i] = i == groupsLength - 1 ? tmp : groups[i + 1];
                     }
                 }
                 else
                 {
-                    var tmp = new Group(groups[4].original, groups[4].positive, groups[4].negative);                    
-                    for (var i = 4; 0 <= i; i--) {
+                    var tmp = new Group(groups[groupsLength - 1].original, groups[groupsLength - 1].positive, groups[groupsLength - 1].negative);                    
+                    for (var i = groupsLength - 1; 0 <= i; i--) {
                         groups[i] = i == 0 ? tmp : groups[i - 1];
                     }
                 }
-                for (var i = 0; i < 5; i++) {
+                for (var i = 0; i < groupsLength; i++) {
                     var top = groups[i].original.top;
                     var left = groups[i].original.left;
                     var width = groups[i].original.width;
@@ -173,8 +174,7 @@
                 return (1 - t) * a + t * b
             }
 
-            // fixme: 要素数をとる
-            for (var i = 0; i < 5; i++) {
+            for (var i = 0; i < groupsLength; i++) {
                 $(".pos_" + i).css({
                     top: elements[i].top,
                     left: elements[i].left,
