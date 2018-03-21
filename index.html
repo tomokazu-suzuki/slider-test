@@ -2,122 +2,181 @@
 
 <head>
     <script src="https://code.jquery.com/jquery-1.x-git.min.js"></script>
-    <script src="jquery.vortex.1.0.6/js/jquery.vortex.min.js"></script>
-    <link href="jquery.vortex.1.0.6/css/vortex.min.css" rel="stylesheet" media="screen" />
     <style type="text/css">
-        #vortex {
-            width: 300px;
-            height: 300px;
+        #content {
+            width: 600px;
+            height: 800px;
             position: relative;
-        }
-
-        #vortex.vortex-animating>* {
-            background-color: red;
+            margin: auto;
         }
 
         .square-button {
+            position: absolute;
             background: #606C88;
             border: solid 1px;
             border-color: #000000;
-            width: 100px;
-            height: 100px
+            /* width: 200px; */
+            /* height: 300px */
+        }
+
+        .square-button img {
+            position: relative;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 
 <body>
-    <div id="vortex">
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
-        <div class="square-button"></div>
+    <div id="content">
+        <div class="square-button pos_0"><img src="img/01.jpg" /></div>
+        <div class="square-button pos_1"><img src="img/02.jpg" /></div>
+        <div class="square-button pos_2"><img src="img/03.jpg" /></div>
+        <div class="square-button pos_3"><img src="img/04.jpg" /></div>
+        <div class="square-button pos_4"><img src="img/05.jpg" /></div>
     </div>
     <script type="text/javascript">
-        var position;
-        var direction;
-        var second;
-        // タッチイベントが利用可能かの判別
-        var supportTouch = 'ontouchend' in document;
-        var EVENTNAME_TOUCHSTART = supportTouch ? 'touchstart' : 'mousedown';
-        var EVENTNAME_TOUCHMOVE = supportTouch ? 'touchmove' : 'mousemove';
-        var EVENTNAME_TOUCHEND = supportTouch ? 'touchend' : 'mouseup';
+        $(function () {
+            var ButtonElement = function (top, left, zIndex, width, height) {
+                this.top = top;
+                this.left = left;
+                this.zIndex = zIndex;
+                this.width = width;
+                this.height = height;
+            };
 
-        $(window).load(function () {
-            $('#vortex').vortex({
-                initialPosition: 270,
-                speed: 0,
-                manualAdvance: true,
-                clockwise: true,
-            });
+            var Group = function (original, positive, negative) {
+                this.original = original;
+                this.positive = positive;
+                this.negative = negative;
+            }
+
+            var elements = {};
+            elements[0] = new ButtonElement(300, 200, 5, 200, 300);
+            elements[1] = new ButtonElement(200, 420, 4, 160, 240);
+            elements[2] = new ButtonElement(30, 500, 3, 100, 150);
+            elements[3] = new ButtonElement(30, -10, 1, 100, 150);
+            elements[4] = new ButtonElement(200, 20, 2, 160, 240);
+
+            var groups = {};
+            groups[0] = new Group(elements[0], elements[1], elements[4]);
+            groups[1] = new Group(elements[1], elements[2], elements[0]);
+            groups[2] = new Group(elements[2], elements[3], elements[1]);
+            groups[3] = new Group(elements[3], elements[4], elements[2]);
+            groups[4] = new Group(elements[4], elements[0], elements[3]);
+
+            // タッチイベントが利用可能かの判別
+            var supportTouch = 'ontouchend' in document;
+            var EVENTNAME_TOUCHSTART = supportTouch ? 'touchstart' : 'mousedown';
+            var EVENTNAME_TOUCHMOVE = supportTouch ? 'touchmove' : 'mousemove';
+            var EVENTNAME_TOUCHEND = supportTouch ? 'touchend' : 'mouseup';
+
+            var startX = 0;
+            var normalize;
+            var onTouchStart = function (event) {
+                startX = getHorizontalPosition(event);
+            };
+
+            var onTouchMove = function (event) {
+                var endX = getHorizontalPosition(event);
+                var duration = endX - startX;
+                normalize = normalized(0, 220, duration);
+                console.log(normalize);
+                while (1 < normalize) {
+                    var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
+                    for (var i = 0; i < 5; i++) {
+                        groups[i] = i == 4 ? tmp : groups[i + 1];
+                    }
+                    normalize -= 1;
+                }
+                if (0 < normalize) {
+                    for (var i = 0; i < 5; i++) {
+                        var top = lerp(groups[i].original.top, groups[i].positive.top, normalize);
+                        var left = lerp(groups[i].original.left, groups[i].positive.left, normalize);
+                        var width = lerp(groups[i].original.width, groups[i].positive.width, normalize);
+                        var height = lerp(groups[i].original.height, groups[i].positive.height, normalize);
+                        setPosition(".pos_" + i, top, left, width, height);
+                    }
+                }
+
+                while (normalize < -1) {
+                    var tmp = new Group(groups[4].original, groups[4].positive, groups[4].negative);                    
+                    for (var i = 4; 0 <= i; i--) {
+                        groups[i] = i == 0 ? tmp : groups[i - 1];
+                    }
+                    normalize += 1;                    
+                }
+                if (normalize < 0) {
+                    var t = Math.abs(normalize);
+                    for (var i = 0; i < 5; i++) {
+                        var top = lerp(groups[i].original.top, groups[i].negative.top, t);
+                        var left = lerp(groups[i].original.left, groups[i].negative.left, t);
+                        var width = lerp(groups[i].original.width, groups[i].negative.width, t);
+                        var height = lerp(groups[i].original.height, groups[i].negative.height, t);
+                        setPosition(".pos_" + i, top, left, width, height);
+                    }
+                }
+            };
+
+            var onTouchEnd = function (event) {
+                for (var i = 0; i < 5; i++) {
+                    var top = groups[i].original.top;
+                    var left = groups[i].original.left;
+                    var width = groups[i].original.width;
+                    var height = groups[i].original.height;
+                    setPosition(".pos_" + i, top, left, width, height);
+                }
+            };
+
+            //横方向の座標を取得
+            var getHorizontalPosition = function (event) {
+                var x;
+                if (supportTouch) {
+                    x = event.originalEvent.changedTouches[0].pageX;
+                } else {
+                    x = event.pageX;
+                }
+                return x;
+            };
+
+            var normalized = function (min, max, value) {
+                var sum = min + max;
+                return sum != 0 ? value / sum : 0;
+            };
+
+            var setPosition = function (target, top, left, width, height) {
+                $(target).css({
+                    top: top,
+                    left: left,
+                    width: width,
+                    height: height
+                });
+            }
+
+            // http://uchinoinu.hatenablog.jp/entry/2016/12/21/164118
+            var lerp = function (a, b, t) {
+                return (1 - t) * a + t * b
+            }
+            console.log("lerp="+lerp(300, 200, 0));
+            console.log("lerp="+lerp(300, 200, 0.5));
+            console.log("lerp="+lerp(300, 200, 1));
+
+            // fixme: 要素数をとる
+            for (var i = 0; i < 5; i++) {
+                $(".pos_" + i).css({
+                    top: elements[i].top,
+                    left: elements[i].left,
+                    zIndex: elements[i].zIndex,
+                    width: elements[i].width,
+                    height: elements[i].height
+                });
+            }
+
+            $('#content').on(EVENTNAME_TOUCHSTART, onTouchStart);
+            $('#content').on(EVENTNAME_TOUCHMOVE, onTouchMove);
+            $('#content').on(EVENTNAME_TOUCHEND, onTouchEnd);
         });
-        $('#vortex').on(EVENTNAME_TOUCHSTART, onTouchStart); //指が触れたか検知
-        $('#vortex').on(EVENTNAME_TOUCHMOVE, onTouchMove); //指が動いたか検知
-        $('#vortex').on(EVENTNAME_TOUCHEND, onTouchEnd); //指が離れたか検知
-
-        //スワイプ開始時の横方向の座標を格納
-        function onTouchStart(event) {
-            position = getPosition(event);
-            direction = ''; //一度リセットする
-            $('#vortex').data('vortex').stop();                       
-            second = new Date().getSeconds;
-        }
-
-        //スワイプの方向（left／right）を取得
-        function onTouchMove(event) {
-            var pos = getPosition(event);
-            if (position - pos > 0) { // 70px以上移動しなければスワイプと判断しない
-                direction = 'left'; //左と検知
-                $('#vortex').data('vortex').setSpeed(20);
-                $('#vortex').data('vortex').setClockwise(true);
-                $('#vortex').data('vortex').start();
-            } else if (position - pos < 0) {  // 70px以上移動しなければスワイプと判断しない
-                direction = 'right'; //右と検知
-                $('#vortex').data('vortex').setSpeed(20);
-                $('#vortex').data('vortex').setClockwise(false);
-                $('#vortex').data('vortex').start();
-            }
-        }
-
-        function onTouchEnd(event) {
-            var pos = getPosition(event);
-            var nowSecond = new Date().getSeconds;
-            console.log(position - pos);
-            if (position - pos > 50 && nowSecond - second < 2) {
-                direction = 'left'; //左と検知
-                $('#vortex').data('vortex').setSpeed(5);
-                $('#vortex').data('vortex').setClockwise(true);
-                $('#vortex').data('vortex').start();
-            } else if (position - pos < 50 && nowSecond - second < 2) {  // 70px以上移動しなければスワイプと判断しない
-                direction = 'right'; //右と検知
-                $('#vortex').data('vortex').setSpeed(5);
-                $('#vortex').data('vortex').setClockwise(false);
-                $('#vortex').data('vortex').start();
-            } else {
-                $('#vortex').data('vortex').stop();           
-            }
-        }
-
-        //横方向の座標を取得
-        function getPosition(event) {
-            // jQueryのイベントはオリジナルのイベントをラップしたもの。
-            // changedTouchesが欲しいので、オリジナルのイベントオブジェクトを取得
-            var original = event.originalEvent;
-            var x;
-            if(original.changedTouches) {
-                x = original.changedTouches[0].pageX;
-            } else {
-                x = event.pageX;
-            }
-            return x;
-        }
     </script>
 </body>
+
 </html>
