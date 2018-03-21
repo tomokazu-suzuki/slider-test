@@ -88,6 +88,7 @@
                         groups[i] = i == 4 ? tmp : groups[i + 1];
                     }
                     normalize -= 1;
+                    startX = endX;
                 }
                 if (0 < normalize) {
                     for (var i = 0; i < 5; i++) {
@@ -104,7 +105,8 @@
                     for (var i = 4; 0 <= i; i--) {
                         groups[i] = i == 0 ? tmp : groups[i - 1];
                     }
-                    normalize += 1;                    
+                    normalize += 1;
+                    startX = endX;                                    
                 }
                 if (normalize < 0) {
                     var t = Math.abs(normalize);
