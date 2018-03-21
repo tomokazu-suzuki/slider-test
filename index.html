@@ -109,12 +109,11 @@
                     startX = endX;                                    
                 }
                 if (normalize < 0) {
-                    var t = Math.abs(normalize);
                     for (var i = 0; i < 5; i++) {
-                        var top = lerp(groups[i].original.top, groups[i].negative.top, t);
-                        var left = lerp(groups[i].original.left, groups[i].negative.left, t);
-                        var width = lerp(groups[i].original.width, groups[i].negative.width, t);
-                        var height = lerp(groups[i].original.height, groups[i].negative.height, t);
+                        var top = lerp(groups[i].original.top, groups[i].negative.top, normalize);
+                        var left = lerp(groups[i].original.left, groups[i].negative.left, normalize);
+                        var width = lerp(groups[i].original.width, groups[i].negative.width, normalize);
+                        var height = lerp(groups[i].original.height, groups[i].negative.height, normalize);
                         setPosition(".pos_" + i, top, left, width, height);
                     }
                 }
@@ -171,6 +170,7 @@
 
             // http://uchinoinu.hatenablog.jp/entry/2016/12/21/164118
             var lerp = function (a, b, t) {
+                t = Math.abs(t);
                 return (1 - t) * a + t * b
             }
             console.log("lerp="+lerp(300, 200, 0));
