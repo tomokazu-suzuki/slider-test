@@ -121,12 +121,26 @@
             };
 
             var onTouchEnd = function (event) {
+                if(normalize > 0)
+                {
+                    var tmp = new Group(groups[0].original, groups[0].positive, groups[0].negative);
+                    for (var i = 0; i < 5; i++) {
+                        groups[i] = i == 4 ? tmp : groups[i + 1];
+                    }
+                }
+                else
+                {
+                    var tmp = new Group(groups[4].original, groups[4].positive, groups[4].negative);                    
+                    for (var i = 4; 0 <= i; i--) {
+                        groups[i] = i == 0 ? tmp : groups[i - 1];
+                    }
+                }
                 for (var i = 0; i < 5; i++) {
                     var top = groups[i].original.top;
                     var left = groups[i].original.left;
                     var width = groups[i].original.width;
                     var height = groups[i].original.height;
-                    setPosition(".pos_" + i, top, left, width, height);
+                    $(".pos_" + i).animate({top: top, left: left, width: width, height: height});
                 }
             };
 
